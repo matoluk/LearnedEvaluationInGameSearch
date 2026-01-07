@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Game {
     private static final long TIME_GRANULARITY = 15_625_000;
-    private static final long TIME_PER_TURN = 320 * TIME_GRANULARITY; //64 -> 1sec
+    private static final long TIME_PER_TURN = 128 * TIME_GRANULARITY; //64 -> 1sec
     public static final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
     static void endGame(String msg) {
         System.out.println(msg);
@@ -12,8 +12,8 @@ public class Game {
     }
     public static void main(String[] args) {
         List<Engine> engines = List.of(
-                new EngineAB(new HeuristicGomoku(), new ABGomokuRelatedMoves()),
-                new EngineAB(new HeuristicGomoku(), new ABGomokuRelatedMoves(3))
+                new EngineAB(new HeuristicGomokuNN("gomoku64MCAB500.pt"), new ABGomokuSortMoves()),
+                new EngineAB(new HeuristicGomokuNN("gomoku64MCAB500.pt"), new ABGomokuSortMoves())
         );
         Position position = new PositionGomoku(15);
         int plOnTurn = 0;
