@@ -136,4 +136,24 @@ public class PositionBreakthrough implements Position {
         }
         return stringBuilder.toString();
     }
+    @Override
+    public String flattenBoard() {
+        StringBuilder sb = new StringBuilder();
+        int me = actualPlayer;
+
+        for (int i = size * (size - 1); i >= 0; i -= size) {
+            for (int j = 0; j < size; j++) {
+                int pos = i + j;
+
+                if (pieces[me].contains(pos)) {
+                    sb.append("1,");
+                } else if (pieces[1 - me].contains(pos)) {
+                    sb.append("-1,");
+                } else {
+                    sb.append("0,");
+                }
+            }
+        }
+        return sb.toString();
+    }
 }

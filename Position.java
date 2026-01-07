@@ -7,4 +7,5 @@ public interface Position extends Serializable {
     GameState state();
     Position applyMove(Object move);
     void revertMove(Object move);
+    String flattenBoard();
 }

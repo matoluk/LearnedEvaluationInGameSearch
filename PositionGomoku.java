@@ -210,4 +210,23 @@ public class PositionGomoku implements Position {
         }
         return stringBuilder.toString();
     }
+
+    @Override
+    public String flattenBoard() {
+        StringBuilder sb = new StringBuilder();
+        int me = actualPlayer();
+
+        for (Move m = new Move(); m != null; m = m.next(size)) {
+            int v = get(m);
+
+            if (v == 0) {
+                sb.append("0,");
+            } else if (v == me) {
+                sb.append("1,");
+            } else {
+                sb.append("-1,");
+            }
+        }
+        return sb.toString();
+    }
 }
