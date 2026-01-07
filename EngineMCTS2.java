@@ -99,6 +99,10 @@ public class EngineMCTS2 implements Engine{
         }
 
         Object getBestMove() {
+            if (children.isEmpty()) {
+                List<Object> moves = mctsPosition.getPosition().moves();
+                return moves.get(rand.nextInt(moves.size()));
+            }
             return children.stream()
                     .max(Comparator.comparingDouble(n -> n.wins / (n.visits + 1)))
                     .map(n -> n.move)
