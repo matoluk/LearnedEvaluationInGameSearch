@@ -5,21 +5,22 @@ import java.util.List;
 public class EnginesTournament {
     private static final long TIME_GRANULARITY = 15_625_000;
     private static final long SEC = 64 * TIME_GRANULARITY;
-    private static final long TIME_PER_PHASE = 60 * 60 * SEC;
-    private static final long[] TIMES_PER_TURN = {32*SEC, 64*SEC};
+    private static final long TIME_PER_PHASE = 60 * SEC;
+    private static final long[] TIMES_PER_TURN = {TIME_GRANULARITY, SEC/32, SEC/16, SEC/8, SEC/4, SEC/2, SEC};
     public static final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
     static double sec(long nano) {
         return nano / 1_000_000_000.0;
     }
     public static void main(String[] args) {
-        System.out.println("Test breakthrough MCTS 2-20 vs AB");
+        System.out.println("Test AB-hand");
         List<Engine> engines = List.of(
                 //new EngineMCTS2(new MCTSBreakthrough2(20)),
                 //new EngineMCTS2(new MCTSBreakthrough(15))
                 //new EngineAB(new HeuristicBreakthrough(), new ABBreakthrough())
 
                 new EngineMCTS2(new MCTSGomoku(n -> n * n, 255)),
-                new EngineAB(new HeuristicGomoku(), new ABGomokuSortMoves())
+                //new EngineAB(new HeuristicGomoku(), new ABGomokuSortMoves())
+                new EngineAB(new HeuristicGomokuNN("gomoku4MC10000.pt"), new ABGomokuSortMoves())
         );
         for (long time : TIMES_PER_TURN) {
             for (int startsEngine = 0; startsEngine < 2; startsEngine++) {
@@ -57,7 +58,7 @@ public class EnginesTournament {
                     }
                     int id = (position.state() == GameState.DRAW) ? 2 : (1 - pl);
                     score[id]++;
-                    System.out.println("Position:\n" + position);
+                    //System.out.println("Position:\n" + position);
                 }
 
                 System.out.println("Time per turn: " + sec(time));
