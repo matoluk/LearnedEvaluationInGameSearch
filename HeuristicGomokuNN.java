@@ -1,22 +1,21 @@
-import ai.djl.MalformedModelException;
 import ai.djl.Model;
 import ai.djl.inference.Predictor;
-import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDList;
-import ai.djl.ndarray.NDManager;
 import ai.djl.ndarray.types.Shape;
 import ai.djl.translate.Batchifier;
 import ai.djl.translate.TranslateException;
 import ai.djl.translate.Translator;
 import ai.djl.translate.TranslatorContext;
-import java.io.IOException;
+
 import java.nio.file.Paths;
 
 public class HeuristicGomokuNN implements PositionEvaluator {
 
     private final Model model;
     private final Predictor<float[], Float> predictor;
-    private final int inputSize = 15 * 15;
+    private static final int SIZE = 15;
+    private static final int INPUT_SIZE = SIZE * SIZE;
+    private final float[] inputBuffer = new float[INPUT_SIZE];
 
     public HeuristicGomokuNN(String modelPath){
 
@@ -27,11 +26,14 @@ public class HeuristicGomokuNN implements PositionEvaluator {
             e.printStackTrace();
         }
 
-        predictor = model.newPredictor(new Translator<float[], Float>() {
+        predictor = model.newPredictor(new Translator<>() {
+
             @Override
             public NDList processInput(TranslatorContext ctx, float[] input) {
-                NDManager manager = ctx.getNDManager();
-                return new NDList(manager.create(input).reshape(1, input.length));
+                return new NDList(
+                        ctx.getNDManager()
+                                .create(input, new Shape(1, INPUT_SIZE))
+                );
             }
 
             @Override
@@ -50,17 +52,23 @@ public class HeuristicGomokuNN implements PositionEvaluator {
         if (!(position instanceof PositionGomoku pos))
             throw new IllegalArgumentException("Expected PositionGomoku");
 
-        String[] tokens = pos.flattenBoard().split(",");
-        float[] input = new float[tokens.length];
-        for (int i = 0; i < tokens.length; i++) {
-            input[i] = Float.parseFloat(tokens[i]);
-        }
+        fillInputBuffer(pos);
 
         try {
-            return predictor.predict(input);
+            return -predictor.predict(inputBuffer);
         } catch (TranslateException e) {
-            e.printStackTrace();
-            return 0.0;
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void fillInputBuffer(PositionGomoku pos) {
+        int idx = 0;
+
+        for (PositionGomoku.Move m = new PositionGomoku.Move(); m != null; m = m.next(SIZE)) {
+            int v = PositionGomoku.get(pos.board, m);
+            inputBuffer[idx++] =
+                    v == 0 ? 0f :
+                            v == pos.actualPlayer() ? 1f : -1f;
         }
     }
 
